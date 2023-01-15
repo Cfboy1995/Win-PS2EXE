@@ -1167,6 +1167,10 @@ $(if ($noConsole){ @"
 
 		public static DialogResult Show(string strTitle, string strPrompt, ref string strVal, bool blSecure)
 		{
+			System.Drawing.Size customSize = new System.Drawing.Size(800, 150);
+			
+			int widthOffset = customSize.Width - 20;
+			
 			// Generate controls
 			Form form = new Form();
 			form.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1192,11 +1196,15 @@ $(if ($noConsole){ @"
 			label.AutoSize = true;
 			// Size of the label is defined not before Add()
 			form.Controls.Add(label);
+			
+			label.Width = widthOffset;
 
 			// Generate textbox
 			if (blSecure) textBox.UseSystemPasswordChar = true;
 			textBox.Text = strVal;
 			textBox.SetBounds(12, label.Bottom, label.Right - 12, 20);
+
+			textBox.Width = widthOffset;
 
 			// Generate buttons
 			// get localized "OK"-string
@@ -1236,6 +1244,8 @@ $(if ($noConsole){ @"
 			form.MaximizeBox = false;
 			form.AcceptButton = buttonOk;
 			form.CancelButton = buttonCancel;
+			form.MaximumSize = customSize;
+			form.MinimumSize = customSize;
 
 			// Show form and compute results
 			DialogResult dialogResult = form.ShowDialog();

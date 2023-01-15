@@ -3,10 +3,11 @@
 // Markus Scholtes, 2021
 //
 // WPF "all in one file" program, no Visual Studio or MSBuild is needed to compile
-// Version for .Net 4.x
+// Version for .Net 3.5
 
 /* compile with:
-%WINDIR%\Microsoft.NET\Framework\v4.0.30319\csc.exe /target:winexe Win-PS2EXE.cs /r:"%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\WPF\presentationframework.dll" /r:"%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\WPF\windowsbase.dll" /r:"%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\WPF\presentationcore.dll" /r:"%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\System.Xaml.dll" /win32icon:MScholtes.ico
+%WINDIR%\Microsoft.NET\Framework\v3.5\csc.exe /target:winexe Win-PS2EXE.cs /r:"C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\presentationframework.dll" /r:"C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\windowsbase.dll" /r:"C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\presentationcore.dll" /win32icon:MScholtes.ico
+(see https://msdn.microsoft.com/en-us/library/aa970678(v=vs.85).aspx)
 */
 
 using System;
@@ -47,6 +48,58 @@ namespace WPFApplication
 			XmlNodeReader XMLReader = new XmlNodeReader(XAML);
 			// generate WPF object tree
 			CustomWindow objWindow = (CustomWindow)XamlReader.Load(XMLReader);
+
+			// add event handlers
+
+			// search object of Button
+			Button objButton = (Button)objWindow.FindName("Compile");
+			// add event handlers
+			objButton.Click += objWindow.Button_Click;
+			objButton.MouseEnter += objWindow.Button_MouseEnter;
+			objButton.MouseLeave += objWindow.Button_MouseLeave;
+
+			// search object of Button
+			Button objButton2 = (Button)objWindow.FindName("Cancel");
+			// add event handlers
+			objButton2.Click += objWindow.Button_Click;
+			objButton2.MouseEnter += objWindow.Button_MouseEnter;
+			objButton2.MouseLeave += objWindow.Button_MouseLeave;
+
+			// search object of TextBox
+			TextBox objTextBox = (TextBox)objWindow.FindName("SourceFile");
+			// add event handlers
+			objTextBox.PreviewDragEnter += objWindow.TextBox_PreviewDragOver;
+			objTextBox.PreviewDragOver += objWindow.TextBox_PreviewDragOver;
+			objTextBox.PreviewDrop += objWindow.TextBox_PreviewDrop;
+
+			// search object of Button
+			Button objButton3 = (Button)objWindow.FindName("SourceFilePicker");
+			// add event handlers
+			objButton3.Click += objWindow.FilePicker_Click;
+
+			// search object of TextBox
+			TextBox objTextBox2 = (TextBox)objWindow.FindName("TargetFile");
+			// add event handlers
+			objTextBox2.PreviewDragEnter += objWindow.TextBox_PreviewDragOver;
+			objTextBox2.PreviewDragOver += objWindow.TextBox_PreviewDragOver;
+			objTextBox2.PreviewDrop += objWindow.TextBox_PreviewDrop;
+
+			// search object of Button
+			Button objButton4 = (Button)objWindow.FindName("TargetFilePicker");
+			// add event handlers
+			objButton4.Click += objWindow.FilePicker_Click;
+
+			// search object of TextBox
+			TextBox objTextBox3 = (TextBox)objWindow.FindName("IconFile");
+			// add event handlers
+			objTextBox3.PreviewDragEnter += objWindow.TextBox_PreviewDragOver;
+			objTextBox3.PreviewDragOver += objWindow.TextBox_PreviewDragOver;
+			objTextBox3.PreviewDrop += objWindow.TextBox_PreviewDrop;
+
+			// search object of Button
+			Button objButton5 = (Button)objWindow.FindName("IconFilePicker");
+			// add event handlers
+			objButton5.Click += objWindow.FilePicker_Click;
 
 			// return CustomWindow object
 			return objWindow;
@@ -297,26 +350,28 @@ namespace WPFApplication
 				TextBox objTargetFile = (TextBox)objWindow.FindName("TargetFile");
 
 				// create OpenFolderDialog control
-				OpenFolderDialog.OpenFolderDialog objOpenFolderDialog = new OpenFolderDialog.OpenFolderDialog();
+				System.Windows.Forms.SaveFileDialog objOpenFolderDialog = new System.Windows.Forms.SaveFileDialog();
+				objOpenFolderDialog.Filter = "Executable Files (*.exe)|*.exe";
+				
 				if (objTargetFile.Text != "")
 				{ // set starting directory for folder picker
 					if (System.IO.Directory.Exists(objTargetFile.Text))
-						objOpenFolderDialog.InitialFolder = objTargetFile.Text;
+						objOpenFolderDialog.InitialDirectory = objTargetFile.Text;
 					else
-						objOpenFolderDialog.InitialFolder = System.IO.Path.GetDirectoryName(objTargetFile.Text);
+						objOpenFolderDialog.InitialDirectory = System.IO.Path.GetDirectoryName(objTargetFile.Text);
 				}
 				else
 				{ // no starting directory for folder picker
-					objOpenFolderDialog.InitialFolder = "";
+					objOpenFolderDialog.InitialDirectory = "";
 				}
 
 				// display folder picker dialog
 				System.Windows.Interop.WindowInteropHelper windowHwnd = new System.Windows.Interop.WindowInteropHelper(this);
-				Nullable<bool> result = objOpenFolderDialog.ShowDialog(windowHwnd.Handle);
+				System.Windows.Forms.DialogResult result = objOpenFolderDialog.ShowDialog();
 
-				if ((result.HasValue) && (result == true))
+				if (result == System.Windows.Forms.DialogResult.OK)
 				{ // get result only if a folder was selected
-					objTargetFile.Text = objOpenFolderDialog.Folder;
+					objTargetFile.Text = objOpenFolderDialog.FileName;
 				}
 			}
 		}
@@ -364,7 +419,7 @@ namespace WPFApplication
 	xmlns:local=""clr-namespace:WPFApplication;assembly=***ASSEMBLY***""
 	xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""
 	x:Name=""Window"" Title=""Win-PS2EXE"" WindowStartupLocation=""CenterScreen""
-	Background=""#FFE8E8E8""  Width=""504"" Height=""370"" ShowInTaskbar=""True"">
+	Background=""#FFE8E8E8""  Width=""504"" Height=""372"" ShowInTaskbar=""True"">
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width=""auto"" />
@@ -388,42 +443,36 @@ namespace WPFApplication
 		<TextBlock Height=""32"" Margin=""0,10,0,0"" FontSize=""16"" Grid.Row=""0"" Grid.Column=""1"" >Win-PS2EXE: Graphical front end to PS2EXE-GUI</TextBlock>
 
 		<Label Grid.Row=""1"" Grid.Column=""0"">Source file: </Label>
-		<TextBox x:Name=""SourceFile"" Height=""18"" Width=""362"" Margin=""0,0,10,0"" AllowDrop=""True"" ToolTip=""Path and name of the source file (the only mandatory field)"" Grid.Row=""1"" Grid.Column=""1""
-			PreviewDragEnter=""TextBox_PreviewDragOver"" PreviewDragOver=""TextBox_PreviewDragOver"" PreviewDrop=""TextBox_PreviewDrop"" />
-		<Button x:Name=""SourceFilePicker"" Background=""#FFD0D0D0"" Height=""18"" Width=""24"" Content=""..."" ToolTip=""File picker for source file"" Grid.Row=""1"" Grid.Column=""2""
-			Click=""FilePicker_Click"" />
+		<TextBox x:Name=""SourceFile"" Height=""18"" Width=""362"" Padding=""-2"" Margin=""0,0,10,0"" AllowDrop=""True"" ToolTip=""Path and name of the source file (the only mandatory field)"" Grid.Row=""1"" Grid.Column=""1"" />
+		<Button x:Name=""SourceFilePicker"" Background=""#FFD0D0D0"" Height=""18"" Width=""24"" Content=""..."" ToolTip=""File picker for source file"" Grid.Row=""1"" Grid.Column=""2"" />
 
 		<Label Grid.Row=""2"" Grid.Column=""0"">Target file: </Label>
-		<TextBox x:Name=""TargetFile"" Height=""18"" Width=""362"" Margin=""0,0,10,0"" AllowDrop=""True"" ToolTip=""Optional: Name and possibly path of the target file or target directory"" Grid.Row=""2"" Grid.Column=""1""
-			PreviewDragEnter=""TextBox_PreviewDragOver"" PreviewDragOver=""TextBox_PreviewDragOver"" PreviewDrop=""TextBox_PreviewDrop"" />
-		<Button x:Name=""TargetFilePicker"" Background=""#FFD0D0D0"" Height=""18"" Width=""24"" Content=""..."" ToolTip=""Directory picker for target directory"" Grid.Row=""2"" Grid.Column=""2""
-			Click=""FilePicker_Click"" />
+		<TextBox x:Name=""TargetFile"" Height=""18"" Width=""362"" Padding=""-2"" Margin=""0,0,10,0"" AllowDrop=""True"" ToolTip=""Optional: Name and possibly path of the target file"" Grid.Row=""2"" Grid.Column=""1"" />
+		<Button x:Name=""TargetFilePicker"" Background=""#FFD0D0D0"" Height=""18"" Width=""24"" Content=""..."" ToolTip=""Directory picker for target directory"" Grid.Row=""2"" Grid.Column=""2"" />
 
 		<Label Grid.Row=""3"" Grid.Column=""0"">Icon file: </Label>
-		<TextBox x:Name=""IconFile"" Height=""18"" Width=""362"" Margin=""0,0,10,0"" AllowDrop=""True"" ToolTip=""Optional: Name and possibly path of the icon file"" Grid.Row=""3"" Grid.Column=""1""
-			PreviewDragEnter=""TextBox_PreviewDragOver"" PreviewDragOver=""TextBox_PreviewDragOver"" PreviewDrop=""TextBox_PreviewDrop"" />
-		<Button x:Name=""IconFilePicker"" Background=""#FFD0D0D0"" Height=""18"" Width=""24"" Content=""..."" ToolTip=""File picker for icon file"" Grid.Row=""3"" Grid.Column=""2""
-			Click=""FilePicker_Click"" />
+		<TextBox x:Name=""IconFile"" Height=""18"" Width=""362"" Padding=""-2"" Margin=""0,0,10,0"" AllowDrop=""True"" ToolTip=""Optional: Name and possibly path of the icon file"" Grid.Row=""3"" Grid.Column=""1"" />
+		<Button x:Name=""IconFilePicker"" Background=""#FFD0D0D0"" Height=""18"" Width=""24"" Content=""..."" ToolTip=""File picker for icon file"" Grid.Row=""3"" Grid.Column=""2"" />
 
 		<Label Margin=""0,10,0,0"" Grid.Row=""4"" Grid.Column=""0"">Version:</Label>
 		<WrapPanel Margin=""0,10,0,0"" Grid.Row=""4"" Grid.Column=""1"" >
-			<TextBox x:Name=""FileVersion"" Height=""18"" Width=""72"" Margin=""0,0,10,0"" ToolTip=""Optional: Version number in format n.n.n.n"" />
-			<Label Margin=""30,0,0,0"" >File description: </Label>
-			<TextBox x:Name=""FileDescription"" Height=""18"" Width=""156"" ToolTip=""Optional: File description displayed in executable's properties"" />
+			<TextBox x:Name=""FileVersion"" Height=""18"" Width=""72"" Padding=""-2"" Margin=""0,0,10,0"" ToolTip=""Optional: Version number in format n.n.n.n"" />
+			<Label Margin=""28,0,0,0"" >File description: </Label>
+			<TextBox x:Name=""FileDescription"" Height=""18"" Width=""156"" Padding=""-2"" ToolTip=""Optional: File description displayed in executable's properties"" />
 		</WrapPanel>
 
 		<Label Grid.Row=""5"" Grid.Column=""0"">Product name:</Label>
 		<WrapPanel Grid.Row=""5"" Grid.Column=""1"" >
-			<TextBox x:Name=""ProductName"" Height=""18"" Width=""100"" Margin=""0,0,10,0"" ToolTip=""Optional: Product name displayed in executable's properties"" />
-			<Label Margin=""30,0,0,0"" >Copyright: </Label>
-			<TextBox x:Name=""Copyright"" Height=""18"" Width=""156"" ToolTip=""Optional: Copyright displayed in executable's properties"" />
+			<TextBox x:Name=""ProductName"" Height=""18"" Width=""100"" Padding=""-2"" Margin=""0,0,10,0"" ToolTip=""Optional: Product name displayed in executable's properties"" />
+			<Label Margin=""28,0,0,0"" >Copyright: </Label>
+			<TextBox x:Name=""Copyright"" Height=""18"" Width=""156"" Padding=""-2"" ToolTip=""Optional: Copyright displayed in executable's properties"" />
 		</WrapPanel>
 
 		<CheckBox x:Name=""noConsole"" IsChecked=""True"" Margin=""0,10,0,0"" ToolTip=""Generate a Windows application instead of a console application"" Grid.Row=""6"" Grid.Column=""1"">Compile a graphic windows program (parameter -noConsole)</CheckBox>
 
 		<WrapPanel Grid.Row=""7"" Grid.Column=""1"" >
 			<CheckBox x:Name=""noOutput"" IsChecked=""False"" ToolTip=""Supress any output including verbose and informational output"" >Suppress output (-noOutput)</CheckBox>
-			<CheckBox x:Name=""noError"" IsChecked=""False"" Margin=""6,0,0,0"" ToolTip=""Supress any error message including warning and debug output"" >Suppress error output (-noError)</CheckBox>
+			<CheckBox x:Name=""noError"" IsChecked=""False"" Margin=""10,0,0,0"" ToolTip=""Supress any error message including warning and debug output"" >Suppress error output (-noError)</CheckBox>
 		</WrapPanel>
 
 		<CheckBox x:Name=""requireAdmin"" IsChecked=""False"" ToolTip=""Request administrative rights (UAC) at runtime if not already present"" Grid.Row=""8"" Grid.Column=""1"">Require administrator rights at runtime (parameter -requireAdmin)</CheckBox>
@@ -433,9 +482,9 @@ namespace WPFApplication
 		<WrapPanel Grid.Row=""10"" Grid.Column=""1"" >
 			<Label>Thread Apartment State: </Label>
 			<RadioButton x:Name=""STA"" VerticalAlignment=""Center"" IsChecked=""True"" GroupName=""ThreadAppartment"" Content=""STA"" ToolTip=""'Single Thread Apartment' mode (recommended)"" />
-			<RadioButton x:Name=""MTA"" Margin=""4,0,0,0"" VerticalAlignment=""Center"" IsChecked=""False"" GroupName=""ThreadAppartment"" Content=""MTA"" ToolTip=""'Multi Thread Apartment' mode"" />
-			<Label Margin=""6,0,0,0"" >Platform: </Label>
-			<ComboBox x:Name=""Platform"" Height=""22"" Margin=""2,0,0,0"" ToolTip=""Designated CPU platform"" >
+			<RadioButton x:Name=""MTA"" Margin=""5,0,0,0"" VerticalAlignment=""Center"" IsChecked=""False"" GroupName=""ThreadAppartment"" Content=""MTA"" ToolTip=""'Multi Thread Apartment' mode""/>
+			<Label Margin=""10,0,0,0"" >Platform: </Label>
+			<ComboBox x:Name=""Platform"" Padding=""6,3,2,0"" Height=""22"" Margin=""2,0,0,0"" ToolTip=""Designated CPU platform"" >
 				<ComboBoxItem IsSelected=""True"">AnyCPU</ComboBoxItem>
 				<ComboBoxItem>x64</ComboBoxItem>
 				<ComboBoxItem>x86</ComboBoxItem>
@@ -443,10 +492,8 @@ namespace WPFApplication
 		</WrapPanel>
 
 		<WrapPanel Margin=""0,5,0,0"" HorizontalAlignment=""Right"" Grid.Row=""11"" Grid.Column=""1"" >
-			<Button x:Name=""Compile"" Background=""#FFD0D0D0"" Height=""22"" Width=""72"" Margin=""10"" Content=""Compile"" ToolTip=""Compile source file to an executable"" IsDefault=""True""
-				Click=""Button_Click"" MouseEnter=""Button_MouseEnter"" MouseLeave=""Button_MouseLeave"" />
-			<Button x:Name=""Cancel"" Background=""#FFD0D0D0"" Height=""22"" Width=""72"" Margin=""10"" Content=""Cancel"" ToolTip=""End program without action"" IsCancel=""True""
-				Click=""Button_Click"" MouseEnter=""Button_MouseEnter"" MouseLeave=""Button_MouseLeave"" />
+			<Button x:Name=""Compile"" Background=""#FFD0D0D0"" Height=""22"" Width=""72"" Margin=""10"" Content=""Compile"" ToolTip=""Compile source file to an executable"" IsDefault=""True"" />
+			<Button x:Name=""Cancel"" Background=""#FFD0D0D0"" Height=""22"" Width=""72"" Margin=""10"" Content=""Cancel"" ToolTip=""End program without action"" IsCancel=""True"" />
 		</WrapPanel>
 	</Grid>
 </local:CustomWindow>";
